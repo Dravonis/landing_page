@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dravonis — Institutional Commercial Real Estate Network</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Typography: Plus Jakarta Sans + Space Grotesk + Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- React & React DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        zinc: {
+                            950: '#09090b',
+                            900: '#121215',
+                            850: '#18181b',
+                            800: '#27272a',
+                            700: '#3f3f46',
+                            400: '#a1a1aa'
+                        },
+                        amber: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #09090b;
+            color: #f4f4f5;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.03em;
+        }
+
+        .font-mono-tech {
+            font-family: 'Space Grotesk', monospace;
+        }
+
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        .swipe-card {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            user-select: none;
+            touch-action: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09090b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+        }
+    </style>
+</head>
+<body class="selection:bg-amber-500/30 selection:text-amber-300">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Expanded Jaipur Commercial Dataset
+        const SAMPLE_CARDS = [
+            {
+                id: 1,
+                title: "Prime Retail Showroom",
+                microMarket: "Tonk Road (Near Glass Tower)",
+                assetType: "Retail Showroom",
+                dealType: "HAVE (For Lease)",
+                size: "4,500 Sq Ft",
+                price: "₹3.5 Lakh / mo",
+                yield: "Pre-Leased to National Brand",
+                commission: "1 Month Rent Split",
+                agentName: "Rajesh Sharma",
+                agency: "Apex Commercial Estates",
+                verifiedRera: "RAJ/P/2023/892",
+                tags: ["Main Road Facing", "Ground Floor", "High Footfall"],
+                image: "https://images.unsplash.com/photo-1555636222-cae831e670b3?auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                id: 2,
+                title: "Grade-A Corporate Office",
+                microMarket: "C-Scheme (Ashok Nagar)",
+                assetType: "Corporate Office",
+                dealType: "WANT (Direct Buyer)",
+                size: "8,000 - 12,000 Sq Ft",
+                price: "Budget: ₹12 Cr - ₹15 Cr",
+                yield: "Bare Shell or Furnished",
+                commission: "1% Split Direct",
+                agentName: "Vikramaditya Rathore",
+                agency: "Heritage City Infra",
+                verifiedRera: "RAJ/P/2022/114",
+                tags: ["100+ Workstations", "Power Backup", "Covered Parking"],
+                image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                id: 3,
+                title: "Industrial Logistics Hub",
+                microMarket: "Ajmer Road (SEZ Area)",
+                assetType: "Warehouse / Industrial",
+                dealType: "HAVE (For Sale)",
+                size: "45,000 Sq Ft Land",
+                price: "₹8.25 Crore",
+                yield: "Current ROI: 8.4% Net Lease",
+                commission: "2% Full Brokerage",
+                agentName: "Sanjay Gupta",
+                agency: "Jaipur Industrial Hub",
+                verifiedRera: "RAJ/P/2021/451",
+                tags: ["Dock Levelers", "33KV Power", "Container Access"],
+                image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                id: 4,
+                title: "Corner Commercial Plot",
+                microMarket: "Vaishali Nagar (Amrapali)",
+                assetType: "Commercial Land",
+                dealType: "HAVE (For Sale)",
+                size: "1,200 Sq Yards",
+                price: "₹24 Crore",
+                yield: "Approved for 8-Story Building",
+                commission: "1% Split",
+                agentName: "Amit Meena",
+                agency: "Royal Land Corp",
+                verifiedRera: "RAJ/P/2023/302",
+                tags: ["Corner Plot", "90 Ft Road", "FAR 3.5"],
+                image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80"
+            },
+            {
+                id: 5,
+                title: "Pre-Leased Bank Premises",
+                microMarket: "Malviya Nagar (Calgiri Road)",
+                assetType: "Pre-Leased Retail",
+                dealType: "WANT (NRI Buyer)",
+                size: "2,200 Sq Ft",
+                price: "Budget: ₹4.5 Crore",
+                yield: "6.5%+ Mandatory Rental Return",
+                commission: "1% Split",
+                agentName: "Priya Khandelwal",
+                agency: "Capital Realty Jaipur",
+                verifiedRera: "RAJ/P/2024/099",
+                tags: ["9-Yr Lock-in", "Bank Tenant", "Escrow Ready"],
+                image: "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=800&q=80"
+            }
+        ];
+
+        // FAQ Data
+        const FAQ_ITEMS = [
+            {
+                q: "What is Dravonis and how does it differ from 99acres or MagicBricks?",
+                a: "Dravonis is an exclusive B2B matchmaker for RERA-registered commercial real estate brokers. We do not host public residential consumer listings. We aggregate verified off-market requirements and inventory, matching agents directly to close co-broking deals faster."
+            },
+            {
+                q: "How does the 'Swipe Deck' matching system work?",
+                a: "Agents view structured single-card summaries of commercial requirements (Offices, Warehouses, Retail, Land). Swiping right locks an instant match signal. When both brokers match, direct contact and co-broking terms are unlocked immediately via WhatsApp."
+            },
+            {
+                q: "How do you verify agents on the network?",
+                a: "Every registrant is verified against government RERA database records and phone OTP verification. Non-RERA agents or unverified consumer spammers are strictly prohibited from accessing the network."
+            },
+            {
+                q: "Is Dravonis free for commercial brokers?",
+                a: "During our Jaipur launch phase, basic inventory submission, matching, and co-broking connection access are 100% free for verified RERA agents."
+            },
+            {
+                q: "How do you protect off-market property confidentiality?",
+                a: "Landlord identities and exact pin locations are never publicly disclosed. Listings show verified micro-markets, sizes, and yields, preserving total privacy until two verified brokers match."
+            }
+        ];
+
+        function App() {
+            // SPA Navigation State
+            const [currentPage, setCurrentPage] = useState('home');
+            
+            // Swipe Engine State
+            const [cards, setCards] = useState(SAMPLE_CARDS);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [matchedCard, setMatchedCard] = useState(null);
+            const [swipeDirection, setSwipeDirection] = useState(null);
+            const [filterZone, setFilterZone] = useState('ALL');
+            
+            // Drag State
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const [isDragging, setIsDragging] = useState(false);
+            const dragStart = useRef({ x: 0, y: 0 });
+
+            // Toast state
+            const [toastMessage, setToastMessage] = useState(null);
+
+            // Contact Form state
+            const [contactForm, setContactForm] = useState({ name: '', phone: '', rera: '', message: '' });
+
+            // FAQ Accordion State
+            const [openFaq, setOpenFaq] = useState(0);
+
+            // Handle page navigation
+            const navigateTo = (page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            const triggerToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 3500);
+            };
+
+            // Filter cards
+            const filteredCards = cards.filter(c => {
+                if (filterZone === 'ALL') return true;
+                return c.microMarket.toLowerCase().includes(filterZone.toLowerCase());
+            });
+
+            const currentCard = filteredCards[currentIndex];
+
+            const handleSwipe = (direction) => {
+                if (!currentCard) return;
+                setSwipeDirection(direction);
+
+                if (direction === 'RIGHT') {
+                    setTimeout(() => {
+                        setMatchedCard(currentCard);
+                    }, 100);
+                }
+
+                setTimeout(() => {
+                    setCurrentIndex(prev => prev + 1);
+                    setSwipeDirection(null);
+                    setDragOffset({ x: 0, y: 0 });
+                }, 200);
+            };
+
+            const resetDeck = () => {
+                setCards([...SAMPLE_CARDS]);
+                setCurrentIndex(0);
+                setMatchedCard(null);
+            };
+
+            // Touch Drag Handlers
+            const onTouchStart = (e) => {
+                setIsDragging(true);
+                dragStart.current = {
+                    x: e.touches ? e.touches[0].clientX : e.clientX,
+                    y: e.touches ? e.touches[0].clientY : e.clientY
+                };
+            };
+
+            const onTouchMove = (e) => {
+                if (!isDragging) return;
+                const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                setDragOffset({
+                    x: currentX - dragStart.current.x,
+                    y: currentY - dragStart.current.y
+                });
+            };
+
+            const onTouchEnd = () => {
+                if (!isDragging) return;
+                setIsDragging(false);
+                if (dragOffset.x > 80) {
+                    handleSwipe('RIGHT');
+                } else if (dragOffset.x < -80) {
+                    handleSwipe('LEFT');
+                } else {
+                    setDragOffset({ x: 0, y: 0 });
+                }
+            };
+
+            const handleContactSubmit = (e) => {
+                e.preventDefault();
+                triggerToast("Application submitted! Private WhatsApp access token generated.");
+                setContactForm({ name: '', phone: '', rera: '', message: '' });
+            };
+
+            return (
+                <div className="min-h-screen bg-grid-pattern relative flex flex-col justify-between">
+                    
+                    {/* TOAST NOTIFICATION */}
+                    {toastMessage && (
+                        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-zinc-900 border border-amber-500/50 text-amber-400 text-xs font-mono-tech shadow-2xl flex items-center space-x-3">
+                            <i className="fa-solid fa-circle-check text-amber-500 text-base"></i>
+                            <span>{toastMessage}</span>
+                        </div>
+                    )}
+
+                    {/* TOP NAVIGATION BAR */}
+                    <nav className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-6 lg:px-16 py-4">
+                        <div className="max-w-7xl mx-auto flex items-center justify-between">
+                            
+                            {/* Brand Logo */}
+                            <button 
+                                onClick={() => navigateTo('home')} 
+                                className="flex items-center space-x-3 text-left focus:outline-none group"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center text-amber-500 shadow-sm group-hover:border-amber-500/50 transition-colors">
+                                    <i className="fa-solid fa-shapes text-sm"></i>
+                                </div>
+                                <span className="font-heading text-xl font-extrabold tracking-tight text-white">
+                                    DRAVONIS
+                                </span>
+                            </button>
+
+                            {/* Center Page Links */}
+                            <div className="hidden md:flex items-center space-x-8 text-xs font-medium text-zinc-400 font-mono-tech">
+                                <button 
+                                    onClick={() => navigateTo('home')} 
+                                    className={`hover:text-white transition-colors ${currentPage === 'home' ? 'text-amber-400 font-bold' : ''}`}
+                                >
+                                    OVERVIEW
+                                </button>
+                                <button 
+                                    onClick={() => navigateTo('engine')} 
+                                    className={`hover:text-white transition-colors ${currentPage === 'engine' ? 'text-amber-400 font-bold' : ''}`}
+                                >
+                                    MATCH ENGINE
+                                </button>
+                                <button 
+                                    onClick={() => navigateTo('about')} 
+                                    className={`hover:text-white transition-colors ${currentPage === 'about' ? 'text-amber-400 font-bold' : ''}`}
+                                >
+                                    ABOUT
+                                </button>
+                                <button 
+                                    onClick={() => navigateTo('faq')} 
+                                    className={`hover:text-white transition-colors ${currentPage === 'faq' ? 'text-amber-400 font-bold' : ''}`}
+                                >
+                                    FAQ
+                                </button>
+                                <button 
+                                    onClick={() => navigateTo('contact')} 
+                                    className={`hover:text-white transition-colors ${currentPage === 'contact' ? 'text-amber-400 font-bold' : ''}`}
+                                >
+                                    CONTACT
+                                </button>
+                            </div>
+
+                            {/* Primary CTA Button */}
+                            <button 
+                                onClick={() => navigateTo('contact')} 
+                                className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 text-zinc-200 font-mono-tech text-xs tracking-wide transition-all flex items-center space-x-2"
+                            >
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span>Verify Broker</span>
+                            </button>
+
+                        </div>
+                    </nav>
+
+                    {/* DYNAMIC PAGE ROUTER */}
+                    <main className="flex-1">
+                        
+                        {/* ==================== PAGE: HOME ==================== */}
+                        {currentPage === 'home' && (
+                            <div className="space-y-20 pb-20">
+                                
+                                {/* HERO SECTION */}
+                                <section className="pt-16 px-6 max-w-7xl mx-auto w-full">
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                                        
+                                        <div className="lg:col-span-7 space-y-8 text-left">
+                                            <div className="inline-flex items-center space-x-2.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono-tech">
+                                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                <span>JAIPUR COMMERCIAL EXCHANGE PROTOCOL</span>
+                                            </div>
+
+                                            <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.08] text-white">
+                                                Where Commercial Deals <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600">Get Matched.</span>
+                                            </h1>
+
+                                            <p className="text-base sm:text-lg text-zinc-400 font-normal leading-relaxed max-w-2xl">
+                                                The off-market B2B network built exclusively for verified RERA brokers. Swipe requirements, match direct mandates, and co-broker deals in half the time.
+                                            </p>
+
+                                            <div className="pt-2 flex flex-wrap items-center gap-6 border-t border-zinc-850 text-xs font-mono-tech text-zinc-400">
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-white font-bold text-sm">500+</span>
+                                                    <span>Verified Agents</span>
+                                                </div>
+                                                <span className="text-zinc-800">•</span>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-white font-bold text-sm">₹250Cr+</span>
+                                                    <span>Active Pipeline</span>
+                                                </div>
+                                                <span className="text-zinc-800">•</span>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="text-amber-500 font-bold">100% RERA</span>
+                                                    <span>Verified</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+                                                <button 
+                                                    onClick={() => navigateTo('engine')}
+                                                    className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-heading font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center space-x-2"
+                                                >
+                                                    <span>Launch Match Engine</span>
+                                                    <i className="fa-solid fa-arrow-right text-xs"></i>
+                                                </button>
+
+                                                <button 
+                                                    onClick={() => navigateTo('about')}
+                                                    className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-heading font-semibold text-sm border border-zinc-800 transition-all flex items-center justify-center space-x-2"
+                                                >
+                                                    <span>Read Operational Blueprint</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Right Hero Preview Widget */}
+                                        <div className="lg:col-span-5 flex justify-center">
+                                            <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-800 p-6 shadow-2xl space-y-5">
+                                                <div className="flex items-center justify-between pb-3 border-b border-zinc-800 text-xs font-mono-tech">
+                                                    <span className="text-zinc-400 uppercase tracking-widest">LIVE EXCHANGE MONITOR</span>
+                                                    <span className="text-amber-500 font-bold">● ONLINE</span>
+                                                </div>
+
+                                                <div className="space-y-3 font-sans">
+                                                    <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs">
+                                                        <div>
+                                                            <div className="font-semibold text-white">Tonk Road Showroom</div>
+                                                            <div className="text-zinc-500 text-[11px]">4,500 Sq Ft • Lease</div>
+                                                        </div>
+                                                        <span className="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 font-mono-tech text-[10px] font-bold border border-emerald-500/20">
+                                                            MATCHED
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs">
+                                                        <div>
+                                                            <div className="font-semibold text-white">C-Scheme IT Office Buyer</div>
+                                                            <div className="text-zinc-500 text-[11px]">₹15 Cr Budget • Direct</div>
+                                                        </div>
+                                                        <span className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 font-mono-tech text-[10px] font-bold border border-amber-500/20">
+                                                            CONNECTED
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs">
+                                                        <div>
+                                                            <div className="font-semibold text-white">Ajmer Road SEZ Warehouse</div>
+                                                            <div className="text-zinc-500 text-[11px]">45k sq ft • 8.4% Net ROI</div>
+                                                        </div>
+                                                        <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono-tech text-[10px]">VERIFYING</span>
+                                                    </div>
+                                                </div>
+
+                                                <button 
+                                                    onClick={() => navigateTo('engine')}
+                                                    className="w-full py-2.5 rounded-xl bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 text-xs font-mono-tech text-amber-500 font-medium transition-all text-center block"
+                                                >
+                                                    Enter Interactive Match Terminal →
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </section>
+
+                                {/* THREE PILLARS */}
+                                <section className="py-16 px-6 max-w-7xl mx-auto border-t border-zinc-850">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                        <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 text-amber-500 flex items-center justify-center text-lg">
+                                                <i className="fa-solid fa-[#fa-bolt] fa-bolt"></i>
+                                            </div>
+                                            <h3 className="font-heading text-lg font-bold text-white">Instant Single-Swipe Matching</h3>
+                                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                                No endless scrolling or messy PDF clutter. Evaluate structured commercial requirements in single swipes.
+                                            </p>
+                                        </div>
+
+                                        <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 text-amber-500 flex items-center justify-center text-lg">
+                                                <i className="fa-solid fa-shield-halved"></i>
+                                            </div>
+                                            <h3 className="font-heading text-lg font-bold text-white">Strict RERA Broker Verification</h3>
+                                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                                Closed B2B ecosystem. Zero direct consumer spammers, zero fake window shoppers.
+                                            </p>
+                                        </div>
+
+                                        <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 text-amber-500 flex items-center justify-center text-lg">
+                                                <i className="fa-solid fa-eye-slash"></i>
+                                            </div>
+                                            <h3 className="font-heading text-lg font-bold text-white">Off-Market Confidentiality</h3>
+                                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                                Landlord names and exact addresses remain hidden until two verified commercial brokers confirm intent.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </section>
+
+                            </div>
+                        )}
+
+                        {/* ==================== PAGE: MATCH ENGINE ==================== */}
+                        {currentPage === 'engine' && (
+                            <section className="py-12 px-6 max-w-7xl mx-auto space-y-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-850">
+                                    <div>
+                                        <span className="text-amber-500 text-xs font-mono-tech font-bold uppercase tracking-widest">MATCH TERMINAL</span>
+                                        <h1 className="font-heading text-3xl font-extrabold text-white mt-1">Live Jaipur Commercial Cards</h1>
+                                    </div>
+
+                                    {/* Micro Market Filter */}
+                                    <div className="flex items-center space-x-2 font-mono-tech text-xs">
+                                        <span className="text-zinc-500">Zone:</span>
+                                        {['ALL', 'Tonk Road', 'C-Scheme', 'Ajmer Road', 'Vaishali Nagar'].map((zone) => (
+                                            <button 
+                                                key={zone}
+                                                onClick={() => { setFilterZone(zone); setCurrentIndex(0); }}
+                                                className={`px-3 py-1.5 rounded-lg border text-[11px] transition-all ${
+                                                    filterZone === zone 
+                                                        ? 'bg-amber-500 text-zinc-950 font-bold border-amber-500' 
+                                                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                                                }`}
+                                            >
+                                                {zone}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Swipe Container */}
+                                <div className="flex justify-center min-h-[580px] relative items-center py-4">
+                                    {currentCard ? (
+                                        <div 
+                                            className="swipe-card w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden shadow-2xl relative cursor-grab active:cursor-grabbing"
+                                            style={{
+                                                transform: `translateX(${dragOffset.x}px) translateY(${dragOffset.y}px) rotate(${dragOffset.x * 0.04}deg)`,
+                                                opacity: swipeDirection ? 0.6 : 1
+                                            }}
+                                            onTouchStart={onTouchStart}
+                                            onTouchMove={onTouchMove}
+                                            onTouchEnd={onTouchEnd}
+                                            onMouseDown={onTouchStart}
+                                            onMouseMove={onTouchMove}
+                                            onMouseUp={onTouchEnd}
+                                            onMouseLeave={onTouchEnd}
+                                        >
+                                            <div className="h-48 relative overflow-hidden bg-zinc-950">
+                                                <img 
+                                                    src={currentCard.image} 
+                                                    alt={currentCard.title} 
+                                                    className="w-full h-full object-cover opacity-80" 
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent"></div>
+                                                
+                                                <div className="absolute top-4 left-4">
+                                                    <span className={`px-2.5 py-1 rounded text-[10px] font-mono-tech font-bold uppercase tracking-wider ${
+                                                        currentCard.dealType.includes('HAVE') ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                                    }`}>
+                                                        {currentCard.dealType}
+                                                    </span>
+                                                </div>
+
+                                                <div className="absolute top-4 right-4 px-2 py-0.5 rounded bg-zinc-950/80 backdrop-blur-md text-[10px] text-zinc-400 font-mono-tech border border-zinc-800">
+                                                    RERA VERIFIED
+                                                </div>
+
+                                                <div className="absolute bottom-3 left-4 right-4">
+                                                    <div className="text-[11px] font-mono-tech text-amber-500 font-medium">
+                                                        <i className="fa-solid fa-location-dot mr-1.5"></i>
+                                                        {currentCard.microMarket}
+                                                    </div>
+                                                    <h3 className="font-heading text-xl font-bold text-white mt-0.5">
+                                                        {currentCard.title}
+                                                    </h3>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-5 space-y-4 bg-zinc-900">
+                                                <div className="grid grid-cols-2 gap-3 text-xs font-mono-tech">
+                                                    <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+                                                        <div className="text-[10px] text-zinc-500 uppercase">Scale / Area</div>
+                                                        <div className="font-bold text-white mt-0.5">{currentCard.size}</div>
+                                                    </div>
+                                                    <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800">
+                                                        <div className="text-[10px] text-zinc-500 uppercase">Price / Rent</div>
+                                                        <div className="font-bold text-amber-400 mt-0.5">{currentCard.price}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2 text-xs text-zinc-400 pt-1">
+                                                    <div className="flex justify-between border-b border-zinc-850 pb-2">
+                                                        <span>Terms:</span>
+                                                        <span className="text-white font-medium">{currentCard.yield}</span>
+                                                    </div>
+                                                    <div className="flex justify-between border-b border-zinc-850 pb-2">
+                                                        <span>Brokerage Split:</span>
+                                                        <span className="text-emerald-400 font-semibold">{currentCard.commission}</span>
+                                                    </div>
+                                                    <div className="flex justify-between pb-1">
+                                                        <span>Mandate Agent:</span>
+                                                        <span className="text-zinc-200">{currentCard.agentName}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                                    {currentCard.tags.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-0.5 rounded bg-zinc-950 text-[10px] text-zinc-400 border border-zinc-800 font-mono-tech">
+                                                            #{tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                <div className="pt-2 flex items-center justify-between gap-3 font-heading">
+                                                    <button 
+                                                        onClick={() => handleSwipe('LEFT')}
+                                                        className="flex-1 py-3 rounded-xl bg-zinc-950 hover:bg-zinc-850 text-zinc-400 hover:text-white border border-zinc-800 font-semibold text-xs transition-all flex items-center justify-center space-x-2"
+                                                    >
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                        <span>PASS</span>
+                                                    </button>
+
+                                                    <button 
+                                                        onClick={() => handleSwipe('RIGHT')}
+                                                        className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs transition-all shadow-md flex items-center justify-center space-x-2"
+                                                    >
+                                                        <i className="fa-solid fa-handshake"></i>
+                                                        <span>CO-BROKER</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-zinc-800 p-8 text-center space-y-6">
+                                            <div className="w-12 h-12 rounded-full bg-zinc-950 border border-zinc-800 text-amber-500 flex items-center justify-center mx-auto text-xl">
+                                                <i className="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-heading text-xl font-bold text-white">Zone Queue Cleared</h3>
+                                                <p className="text-xs text-zinc-400 mt-2 font-mono-tech">
+                                                    All active commercial cards for "{filterZone}" have been evaluated.
+                                                </p>
+                                            </div>
+                                            <button 
+                                                onClick={resetDeck}
+                                                className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-heading font-bold text-xs transition-all"
+                                            >
+                                                Reset Match Deck
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Match Modal */}
+                                    {matchedCard && (
+                                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md">
+                                            <div className="w-full max-w-md rounded-2xl bg-zinc-900 border border-amber-500/40 p-6 text-center space-y-6 shadow-2xl">
+                                                <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto text-2xl">
+                                                    <i className="fa-solid fa-handshake-angle"></i>
+                                                </div>
+
+                                                <div>
+                                                    <span className="text-[10px] font-mono-tech text-amber-500 uppercase tracking-widest">CO-BROKING MATCH CONFIRMED</span>
+                                                    <h3 className="font-heading text-2xl font-black text-white mt-1">Direct Match Created</h3>
+                                                    <p className="text-xs text-zinc-400 mt-2">
+                                                        Agent <strong className="text-white">{matchedCard.agentName}</strong> ({matchedCard.agency}) holding mandate for <strong className="text-white">{matchedCard.title}</strong> is unlocked.
+                                                    </p>
+                                                </div>
+
+                                                <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-left space-y-2 text-xs font-mono-tech">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-zinc-500">RERA License:</span>
+                                                        <span className="text-amber-400">{matchedCard.verifiedRera}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-zinc-500">Commission terms:</span>
+                                                        <span className="text-emerald-400">{matchedCard.commission}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3 font-heading">
+                                                    <button 
+                                                        onClick={() => {
+                                                            triggerToast("Connecting to verified agent WhatsApp...");
+                                                            setMatchedCard(null);
+                                                        }}
+                                                        className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold text-xs transition-all shadow-md flex items-center justify-center space-x-2"
+                                                    >
+                                                        <i className="fa-brands fa-whatsapp text-sm"></i>
+                                                        <span>Open WhatsApp Connection</span>
+                                                    </button>
+                                                    
+                                                    <button 
+                                                        onClick={() => setMatchedCard(null)}
+                                                        className="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300"
+                                                    >
+                                                        Return to Deck
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: ABOUT US ==================== */}
+                        {currentPage === 'about' && (
+                            <section className="py-16 px-6 max-w-4xl mx-auto space-y-12">
+                                <div className="space-y-4 text-center">
+                                    <span className="text-amber-500 text-xs font-mono-tech font-bold uppercase tracking-widest">THE DRAVONIS DOCTRINE</span>
+                                    <h1 className="font-heading text-4xl sm:text-5xl font-extrabold text-white">Building India's Crexi from Jaipur.</h1>
+                                    <p className="text-zinc-400 text-base leading-relaxed">
+                                        Commercial real estate in India is not a residential classified business. It is driven by trust, relationships, and off-market broker liquidity.
+                                    </p>
+                                </div>
+
+                                <div className="p-8 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-6 text-sm text-zinc-300 leading-relaxed">
+                                    <h3 className="font-heading text-xl font-bold text-white">The Operational Moat</h3>
+                                    <p>
+                                        Traditional proptech portals focus heavily on residential consumer listings, leaving commercial real estate (offices, retail showrooms, warehouses, industrial plots) fragmented inside unorganized chat groups.
+                                    </p>
+                                    <p>
+                                        Dravonis solves this by aggregating a structured database of over 10,000 verified RERA commercial brokers starting in Jaipur, providing a dedicated B2B transaction floor designed for rapid co-broking.
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-800 font-mono-tech text-xs">
+                                        <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800">
+                                            <div className="text-amber-500 font-bold">Phase 1: Local Liquidity</div>
+                                            <div className="text-zinc-400 mt-1">High-speed RERA broker onboarding in Jaipur key hubs (C-Scheme, Tonk Road, Ajmer Road).</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800">
+                                            <div className="text-amber-500 font-bold">Phase 2: SaaS Matchmaker</div>
+                                            <div className="text-zinc-400 mt-1">Single-swipe matching engine automating co-broking agreements across Tier-1/2 growth hubs.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: FAQS ==================== */}
+                        {currentPage === 'faq' && (
+                            <section className="py-16 px-6 max-w-4xl mx-auto space-y-10">
+                                <div className="text-center space-y-3">
+                                    <span className="text-amber-500 text-xs font-mono-tech font-bold uppercase tracking-widest">FREQUENTLY ASKED QUESTIONS</span>
+                                    <h1 className="font-heading text-4xl font-extrabold text-white">Everything You Need to Know</h1>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {FAQ_ITEMS.map((item, idx) => (
+                                        <div 
+                                            key={idx}
+                                            onClick={() => setOpenFaq(openFaq === idx ? -1 : idx)}
+                                            className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 cursor-pointer transition-all hover:border-zinc-700"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="font-heading font-bold text-white text-base">{item.q}</h3>
+                                                <i className={`fa-solid fa-chevron-down text-amber-500 text-xs transition-transform ${openFaq === idx ? 'rotate-180' : ''}`}></i>
+                                            </div>
+                                            {openFaq === idx && (
+                                                <p className="text-xs text-zinc-400 leading-relaxed mt-4 pt-4 border-t border-zinc-850">
+                                                    {item.a}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: CONTACT / ONBOARDING ==================== */}
+                        {currentPage === 'contact' && (
+                            <section className="py-16 px-6 max-w-2xl mx-auto space-y-8">
+                                <div className="text-center space-y-3">
+                                    <span className="text-amber-500 text-xs font-mono-tech font-bold uppercase tracking-widest">VERIFIED RERA ONBOARDING</span>
+                                    <h1 className="font-heading text-4xl font-extrabold text-white">Apply for Network Access</h1>
+                                    <p className="text-xs text-zinc-400 font-mono-tech">
+                                        Exclusively for registered commercial real estate brokers in Jaipur.
+                                    </p>
+                                </div>
+
+                                <form onSubmit={handleContactSubmit} className="p-8 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-5">
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-zinc-400 font-mono-tech">Full Name / Agency Name</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            value={contactForm.name}
+                                            onChange={e => setContactForm({...contactForm, name: e.target.value})}
+                                            placeholder="e.g. Rajesh Sharma (Apex Estates)" 
+                                            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 text-xs font-mono-tech"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-zinc-400 font-mono-tech">WhatsApp Contact</label>
+                                            <input 
+                                                type="tel" 
+                                                required
+                                                value={contactForm.phone}
+                                                onChange={e => setContactForm({...contactForm, phone: e.target.value})}
+                                                placeholder="+91 98290 XXXXX" 
+                                                className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 text-xs font-mono-tech"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-zinc-400 font-mono-tech">RERA Registration No.</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={contactForm.rera}
+                                                onChange={e => setContactForm({...contactForm, rera: e.target.value})}
+                                                placeholder="RAJ/P/202X/XXX" 
+                                                className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 text-xs font-mono-tech"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-zinc-400 font-mono-tech">Primary Asset Focus / Micro-Market</label>
+                                        <textarea 
+                                            rows="3"
+                                            value={contactForm.message}
+                                            onChange={e => setContactForm({...contactForm, message: e.target.value})}
+                                            placeholder="e.g. Retail Showrooms on Tonk Road, Warehousing along Ajmer Road SEZ" 
+                                            className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-zinc-800 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 text-xs font-mono-tech"
+                                        ></textarea>
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-heading font-bold text-xs tracking-wide transition-all shadow-md"
+                                    >
+                                        Submit RERA Application
+                                    </button>
+                                </form>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: PRIVACY POLICY ==================== */}
+                        {currentPage === 'privacy' && (
+                            <section className="py-16 px-6 max-w-4xl mx-auto space-y-8 text-xs text-zinc-400 leading-relaxed font-sans">
+                                <h1 className="font-heading text-3xl font-extrabold text-white">Privacy Policy</h1>
+                                <p>Last updated: October 2026</p>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-heading text-base font-bold text-white">1. Data Collection & Verification</h3>
+                                    <p>Dravonis collects agent names, RERA registration numbers, phone numbers, and property mandate specifications solely for the purpose of validating broker authenticity and matching co-broking requirements inside our closed network.</p>
+
+                                    <h3 className="font-heading text-base font-bold text-white">2. Off-Market Confidentiality</h3>
+                                    <p>Exact pin locations and property owner contact details are never publicly broadcast. All match cards utilize anonymized micro-market indicators to protect listing exclusivity.</p>
+
+                                    <h3 className="font-heading text-base font-bold text-white">3. Information Sharing</h3>
+                                    <p>Agent contact information is disclosed only to another verified RERA broker upon a mutual match event confirmed by both parties within the exchange software.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: TERMS OF SERVICE ==================== */}
+                        {currentPage === 'terms' && (
+                            <section className="py-16 px-6 max-w-4xl mx-auto space-y-8 text-xs text-zinc-400 leading-relaxed font-sans">
+                                <h1 className="font-heading text-3xl font-extrabold text-white">Terms & Conditions</h1>
+                                <p>Last updated: October 2026</p>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-heading text-base font-bold text-white">1. Eligibility</h3>
+                                    <p>Access to Dravonis is strictly limited to active, RERA-registered real estate agents and direct corporate mandate holders operating in India.</p>
+
+                                    <h3 className="font-heading text-base font-bold text-white">2. Co-Broking Standards</h3>
+                                    <p>Members agree to adhere to transparent brokerage split terms agreed upon during the matchmaking unlock phase. Dravonis does not collect direct commission splits from transactions unless explicitly governed by a separate escrow protocol.</p>
+
+                                    <h3 className="font-heading text-base font-bold text-white">3. Termination</h3>
+                                    <p>Accounts broadcasting fake listings, spam, or non-commercial residential listings will be permanently blacklisted from the network without prior notice.</p>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* ==================== PAGE: 404 ERROR ==================== */}
+                        {currentPage === '404' && (
+                            <section className="py-32 px-6 text-center space-y-6">
+                                <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 text-amber-500 flex items-center justify-center mx-auto text-2xl font-mono-tech">
+                                    404
+                                </div>
+                                <h1 className="font-heading text-3xl font-extrabold text-white">Listing Mandate Not Found</h1>
+                                <p className="text-xs text-zinc-400 font-mono-tech max-w-md mx-auto">
+                                    The property requirement card or sub-page you are attempting to view has been moved or unlisted from the Jaipur floor.
+                                </p>
+                                <button 
+                                    onClick={() => navigateTo('home')}
+                                    className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 font-heading font-bold text-xs transition-all"
+                                >
+                                    Return to Main Floor
+                                </button>
+                            </section>
+                        )}
+
+                    </main>
+
+                    {/* GLOBAL FOOTER */}
+                    <footer className="py-10 px-6 border-t border-zinc-850 text-xs font-mono-tech text-zinc-500 bg-zinc-950">
+                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                            
+                            <div className="space-y-1 text-center md:text-left">
+                                <div className="flex items-center justify-center md:justify-start space-x-2">
+                                    <span className="font-bold text-white font-heading text-base tracking-tight">DRAVONIS</span>
+                                    <span className="text-amber-500">•</span>
+                                    <span>Commercial Real Estate Exchange</span>
+                                </div>
+                                <p className="text-[11px] text-zinc-600">Built for verified Indian RERA brokers. Operating in Jaipur.</p>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-center gap-6 text-[11px]">
+                                <button onClick={() => navigateTo('home')} className="hover:text-white transition-colors">Home</button>
+                                <button onClick={() => navigateTo('engine')} className="hover:text-white transition-colors">Match Engine</button>
+                                <button onClick={() => navigateTo('about')} className="hover:text-white transition-colors">About Us</button>
+                                <button onClick={() => navigateTo('faq')} className="hover:text-white transition-colors">FAQs</button>
+                                <button onClick={() => navigateTo('contact')} className="hover:text-white transition-colors">RERA Verification</button>
+                                <button onClick={() => navigateTo('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+                                <button onClick={() => navigateTo('terms')} className="hover:text-white transition-colors">Terms of Service</button>
+                                <button onClick={() => navigateTo('404')} className="hover:text-zinc-400 transition-colors text-zinc-700">Test 404</button>
+                            </div>
+
+                        </div>
+                    </footer>
+
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
